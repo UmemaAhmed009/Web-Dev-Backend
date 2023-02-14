@@ -9,7 +9,7 @@ module.exports={
             const secret = process.env.JWT_KEY
             const options = {
                 expiresIn :'1h',
-                issuer: 'minal@barbie.com',
+                issuer: 'minalspage.com',
                 audience: userId,
             }
             jwt.sign(payload, secret, options, (err,token)=> {
@@ -46,7 +46,7 @@ module.exports={
             const secret = process.env.JWT_REFRESH_KEY
             const options = {
                 expiresIn :'30d',
-                issuer: 'minal@barbie.com',
+                issuer: 'minalspage.com',
                 audience: userId,
             }
             jwt.sign(payload, secret, options, (err,token)=> {
