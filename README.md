@@ -1,2 +1,1 @@
-# JWT Authentication
- 
+# Ed-tech web dev project
