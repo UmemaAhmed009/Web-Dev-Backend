@@ -1,0 +1,10 @@
+GET http://localhost:9000/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzYyMjAzNzYsImV4cCI6MTY3NjIyMzk3NiwiYXVkIjoiNjNlOTA0YWRlZGM2MmYzOGRlNGFlZTg0IiwiaXNzIjoiQ29kaW5nQmxvZy5jb20ifQ.RCOevdTSg8A3PunCttAXhvL841_pHENheDta8Epd7aY
+
+POST http://localhost:9000/users/login
+Content-Type: application/json
+
+{
+    "email":"princess@gmail.com",
+    "password":"Ramshaisthebest"
+}
