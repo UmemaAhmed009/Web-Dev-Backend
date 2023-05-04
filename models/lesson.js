@@ -21,6 +21,10 @@ const lesson_schema = new mongoose.Schema({
     lesson_details:{
         type: String,
         //required: true,
+    },
+    lesson_image: {
+        type: String,
+        required: true,
     }
 })
 module.exports = mongoose.model("Lesson", lesson_schema);

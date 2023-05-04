@@ -18,7 +18,7 @@ router.get('/',async(req,res) =>{
 })
 
 //GET LESSON BY ID API
-router.get('/:id',verifyAccessToken,async(req,res) =>{
+router.get('/:id',/*verifyAccessToken,*/async(req,res) =>{
     try{
         const lesson =  await Lesson.findById(req.params.id)
         res.json(lesson)
@@ -60,10 +60,13 @@ router.get('/unit/:unit_id', /*verifyAccessToken,*/ async(req, res) => {
   });
 
 //PUT API
-router.put('/:id',verifyAccessToken, async(req,res) =>{
-    try{
+router.put('/:id',/*verifyAccessToken*/ async(req,res) =>{
+    try {
         const lesson = await Lesson.findById(req.params.id)
-        lesson.lesson_name = req.body.lesson_name
+        lesson.lesson_name = req.body.lesson_name,
+        lesson.unit_id = req.body.unit_id,
+        lesson.lesson_details= req.body.lesson_details,
+        lesson.lesson_image= req.body.lesson_image
         const l1 = await lesson.save()
         res.json(l1)
     }
@@ -77,7 +80,8 @@ router.post('/', async(req,res) => {
         _id: req.body.lesson_id,
         lesson_name: req.body.lesson_name,
         unit_id : req.body.unit_id,
-        lesson_details: req.body.lesson_details
+        lesson_details: req.body.lesson_details,
+        lesson_image: req.body.lesson_image
     })
     try{
         const l1 = await lesson.save()
