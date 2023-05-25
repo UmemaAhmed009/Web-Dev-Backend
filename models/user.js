@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
         //type: Number,
         required: true,
         ref: 'Role'
+    },
+    age:
+    {
+        type: Number
     }
 })
 

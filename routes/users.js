@@ -25,7 +25,8 @@ router.post('/signup', async(req, res, next)=>{
             name:result.name,
             email:result.email,
             password:result.password,
-            role_id: 2
+            role_id: 2,
+            age:result.age
             
         })
         const savedUser=await user.save()
@@ -136,6 +137,7 @@ router.put('/:id', async(req,res) =>{
         user.name= req.body.name,
         user.email = req.body.email,
         user.password = await bcrypt.hash(req.body.password,10),
+        user.age=req.body.age,
         user.role_id=req.body.role_id
         const u1 = await user.save()
         res.json(u1)
@@ -151,7 +153,8 @@ router.post('/', async(req,res) => {
         name:req.body.name,
         email: req.body.email,
         password: req.body.password,
-        role_id: req.body.role_id
+        role_id: req.body.role_id,
+        age:req.body.age
     })
     try{
         const u1 = await user.save()
