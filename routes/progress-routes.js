@@ -35,37 +35,83 @@ router.get('/:id',async(req,res) =>{
 })
 
 
-//POST API, would create progress_id+student_id only
-router.post('/', (req, res, next) => {
-    const progress = new Progress({
-        _id: req.body.progress_id,
-        student_id: req.body.student_id
+// //POST API, would create progress_id+user_id+subject empty array only
+// router.post('/', (req, res, next) => {
+//     const progress = new Progress({
+//         _id: req.body.progress_id,
+//         user_id: req.body.user_id
+//         });
+//     progress
+//         .save()
+//         .then(result =>{
+//             console.log(result);
+//             res.status(201).json({
+//                 message: 'Progress created',
+//                 createdProgress: result
+//             });
+//         })
+//         .catch(err => {
+//             console.log(err);
+//             res.status(500).json({
+//                 error:err
+//             });
+//         })
+// });
+
+
+//FINALLLL, checks if user id in the progress table, if it is, add subject to that, warna creates a new progress obj and adds it there
+//also checks if the subject id is alr there in the subject arr
+router.post('/', async (req, res) => {
+  try {
+    const userId = req.body.user_id;
+    const subjectId = req.body.subject_id;
+
+    let progress = await Progress.findOne({ user_id: userId });
+
+    if (progress) {
+      // Check if the subject ID already exists in the subjects array
+      const existingSubjectIndex = progress.subjects.findIndex(subject => String(subject._id) === String(subjectId));
+      console.log("THIS: ",existingSubjectIndex)
+      if (existingSubjectIndex !== -1) {
+        res.json({ message: 'Subject already exists in progress', progressId: progress._id });
+      } else {
+        progress.subjects.push({
+          _id: subjectId,
+          classes: []
         });
-    progress
-        .save()
-        .then(result =>{
-            console.log(result);
-            res.status(201).json({
-                message: 'Progress created',
-                createdProgress: result
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error:err
-            });
-        })
+        await progress.save();
+        res.json({ message: 'Subject added to progress successfully', progressId: progress._id });
+      }
+    } else {
+      progress = new Progress({
+        user_id: userId,
+        subjects: [{
+          _id: subjectId,
+          classes: []
+        }]
+      });
+      await progress.save();
+      res.json({ message: 'Progress created successfully' });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
+
+
+
+
 
 //POST API, requires all attributes in the request body
 router.post('/post-all', async (req, res) => {
 try {
-    const { progress_id, student_id, subjects } = req.body;
+    const { progress_id, user_id, subjects } = req.body;
 
     const progress = new Progress({
     _id: progress_id,
-    student_id: student_id,
+    user_id: user_id,
     subjects: subjects.map(subject => ({
         _id: subject.subject_id,
         classes: subject.classes.map(classItem => ({
@@ -153,54 +199,98 @@ router.put('/:id', async (req, res) => {
 });
 
 
-//PUT API to add a new object to subjects array
-router.put('/:progressId/subject', async (req, res) => {
-    try {
-      const progressId = req.params.progressId;
+// //PUT API to add a new object to subjects array
+// router.put('/:progressId/subject', async (req, res) => {
+//     try {
+//       const progressId = req.params.progressId;
 
-      const subjectId = req.body.subject_id;
+//       const subjectId = req.body.subject_id;
 
-      const progress = await Progress.findById(progressId);
+//       const progress = await Progress.findById(progressId);
   
-      if (!progress) {
-        return res.status(404).json({ error: 'Progress not found' });
-      }
+//       if (!progress) {
+//         return res.status(404).json({ error: 'Progress not found' });
+//       }
   
 
-      const subject_find = await Subject.findById(subjectId);
+//       const subject_find = await Subject.findById(subjectId);
 
-       if (!subject_find) {
-        return res.status(404).json({ error: 'Subject not found' });
-       }
+//        if (!subject_find) {
+//         return res.status(404).json({ error: 'Subject not found' });
+//        }
 
-      const subject = progress.subjects.id(subjectId);
+//       const subject = progress.subjects.id(subjectId);
       
-      if (!subject) {
-        progress.subjects.push({
-            _id: subjectId,
-            classes: [],
-          });
-      }
+//       if (!subject) {
+//         progress.subjects.push({
+//             _id: subjectId,
+//             classes: [],
+//           });
+//       }
 
-      await progress.save();
+//       await progress.save();
   
-      res.json({ message: 'Subject added successfully' });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
+//       res.json({ message: 'Subject added successfully' });
+//     } catch (err) {
+//       console.error(err);
+//       res.status(500).json({ error: 'Server error' });
+//     }
+// });
+
+//Same as above i think, this would add a subject obj to the subject array
+//i dont this this would be used now
+router.put('/:progressId/subject', async (req, res) => {
+  try {
+    const progressId = req.params.progressId;
+    const subjectId = req.body.subject_id;
+
+    const progress = await Progress.findById(progressId);
+
+    if (!progress) {
+      return res.status(404).json({ error: 'Progress not found' });
     }
+
+    const subject_find = await Subject.findById(subjectId);
+
+    if (!subject_find) {
+      return res.status(404).json({ error: 'Subject not found' });
+    }
+
+    let subject = progress.subjects.id(subjectId);
+
+    if (!subject) {
+      if (progress.subjects.length === 0) {
+        progress.subjects.push({
+          _id: subjectId,
+          classes: []
+        });
+      } else {
+        // Create a new subject object and assign it the subjectId
+        subject = new Subject({ _id: subjectId, classes: [] });
+        progress.subjects.push(subject);
+      }
+    }
+
+    await progress.save();
+
+    res.json({ message: 'Subject added successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 
-//PUT API to add a new object to classes array
-router.put('/:progressId/subject/:subjectId/class', async (req, res) => {
+
+//PUT API to add a new object to classes array 
+router.put('/user/:userId/subject/:subjectId/class', async (req, res) => {
     try {
-      const progressId = req.params.progressId;
+      const userId = req.params.userId;
       const subjectId = req.params.subjectId;
 
       const classId = req.body.class_id;
 
-      const progress = await Progress.findById(progressId);
+      const progress = await Progress.findOne({ user_id: userId });
   
       if (!progress) {
         return res.status(404).json({ error: 'Progress not found' });
@@ -239,9 +329,9 @@ router.put('/:progressId/subject/:subjectId/class', async (req, res) => {
 
 
 //PUT API to add a new object to units array or to update an object in units array
-router.put('/:progressId/subject/:subjectId/class/:classId/unit', async (req, res) => {
+router.put('/user/:userId/subject/:subjectId/class/:classId/unit', async (req, res) => {
     try {
-      const progressId = req.params.progressId;
+      const userId = req.params.userId;
       const subjectId = req.params.subjectId;
       const classId = req.params.classId;
 
@@ -252,7 +342,7 @@ router.put('/:progressId/subject/:subjectId/class/:classId/unit', async (req, re
       const isCompleted= req.body.is_completed;
       const unitCompletedAt= req.body.unit_completed_at;
   
-      const progress = await Progress.findById(progressId);
+      const progress = await Progress.findOne({ user_id: userId });
   
       if (!progress) {
         return res.status(404).json({ error: 'Progress not found' });
@@ -308,9 +398,9 @@ router.put('/:progressId/subject/:subjectId/class/:classId/unit', async (req, re
 
 
 //PUT API to add a new object to lessons array or to update an object in lessons array
-router.put('/:progressId/subject/:subjectId/class/:classId/unit/:unitId/lesson', async (req, res) => {
+router.put('/user/:userId/subject/:subjectId/class/:classId/unit/:unitId/lesson', async (req, res) => {
     try {
-      const progressId = req.params.progressId;
+      const userId = req.params.userId;
       const subjectId = req.params.subjectId;
       const classId = req.params.classId;
       const unitId = req.params.unitId;
@@ -322,7 +412,7 @@ router.put('/:progressId/subject/:subjectId/class/:classId/unit/:unitId/lesson',
       const isCompleted= req.body.is_completed;
       const lessonCompletedAt= req.body.lesson_completed_at;
   
-      const progress = await Progress.findById(progressId);
+      const progress = await Progress.findOne({ user_id: userId });
   
       if (!progress) {
         return res.status(404).json({ error: 'Progress not found' });
@@ -383,17 +473,19 @@ router.put('/:progressId/subject/:subjectId/class/:classId/unit/:unitId/lesson',
   
 
 //PUT API to add a new object to answer_status array or to update an object in answer_status
-router.put('/:progressId/subject/:subjectId/class/:classId/unit/:unitId/lesson/:lessonId/answer_status', async (req, res) => {
+router.put('/user/:userId/subject/:subjectId/class/:classId/unit/:unitId/lesson/:lessonId/answer_status', async (req, res) => {
   try {
-    const progressId = req.params.progressId;
+    const userId = req.params.userId;
     const subjectId = req.params.subjectId;
     const classId = req.params.classId;
     const unitId = req.params.unitId;
     const lessonId = req.params.lessonId;
+
     const questionId = req.body.question_id;
     const isCorrect = req.body.is_correct;
+    const tries= req.body.tries;
     
-    const progress = await Progress.findById(progressId);
+    const progress = await Progress.findOne({ user_id: userId });
     
     if (!progress) {
       return res.status(404).json({ error: 'Progress not found' });
@@ -435,9 +527,11 @@ router.put('/:progressId/subject/:subjectId/class/:classId/unit/:unitId/lesson/:
       lesson.answer_status.push({
         _id: questionId,
         is_correct: isCorrect,
+        tries: tries
       });
     } else {
       answerStatus.is_correct = isCorrect;
+      answerStatus.tries = tries;
     }
 
     await progress.save();

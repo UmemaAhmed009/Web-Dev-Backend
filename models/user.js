@@ -24,7 +24,12 @@ const userSchema = new mongoose.Schema({
         //type: Number,
         required: true,
         ref: 'Role'
+    },
+    age:
+    {
+        type: Number
     }
+    
 })
 
 userSchema.pre('save', async function (next) {

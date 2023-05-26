@@ -6,6 +6,8 @@ const Unit = require("../models/unit");
 const Lesson = require("../models/lesson");
 const Question = require("../models/question");
 
+const AutoIncrement = require('mongoose-sequence')(mongoose);
+
 //progressID, studentID, subjects[subjectID, classes[classID, units[unitID, unitProgress, completedlessons, totallessons, 
 // unitStartedAt, isCompleted, unitCompletedAt, lessons[lessonID, lessonProgress, correctAnswers, totalQuestions, isCompleted, lessonCompletedAt, answerStatus[questionID, isCorrect]]]]]
 
@@ -13,12 +15,13 @@ const ProgressSchema = mongoose.Schema({
     _id:
     {
         type: Number,
-        required: true
+        name: String
+
     },
-    student_id:{
-        type: mongoose.Schema.Types.Number,
+    user_id:{
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
-        ref:'Student'
+        ref:'User'
     },
     subjects:[{
         _id:{
@@ -40,12 +43,15 @@ const ProgressSchema = mongoose.Schema({
                 },
                 unit_progress:{
                     type: Number,
+                    default: 0,
                 },
                 completed_lessons:{
-                    type: Number
+                    type: Number,
+                    default: 0,
                 },
                 total_lessons:{
-                    type: Number
+                    type: Number,
+                    default: 0,
                 },
                 unit_started_at:{
                     type:Date,
@@ -65,13 +71,20 @@ const ProgressSchema = mongoose.Schema({
                         ref:'Lesson'
                     },
                     lesson_progress:{
-                        type:Number
+                        type:Number,
+                        default: 0,
                     },
                     correct_answers:{
-                        type:Number
+                        type:Number,
+                        default: 0,
                     },
                     total_questions:{
-                        type:Number
+                        type:Number,
+                        default: 0,
+                    },
+                    total_tries:{
+                        type:Number,
+                        default: 0,
                     },
                     is_completed:{
                         type:Boolean,
@@ -89,6 +102,10 @@ const ProgressSchema = mongoose.Schema({
                         is_correct:{
                             type: Boolean,
                             default: false
+                        },
+                        tries:{
+                            type: Number,
+                            default: 0
                         }
                     }]
                 }]
@@ -98,6 +115,90 @@ const ProgressSchema = mongoose.Schema({
         }]
     }]
 
-})
+}, { _id: false })
+ProgressSchema.plugin(AutoIncrement);
+// ProgressSchema.plugin(AutoIncrement, {inc_field: 'id'});
 
+// Middleware to update total_lessons, total_questions, and total_tries before saving
+ProgressSchema.pre('save', async function (next) {
+    const units = this.subjects.reduce(
+      (accum, subject) =>
+        accum.concat(subject.classes.flatMap((cls) => cls.units)),
+      []
+    );
+  
+    for (const unit of units) {
+      // Update total_lessons for each unit
+      const lessonCount = await Lesson.countDocuments({ unit_id: unit._id });
+      unit.total_lessons = lessonCount;
+  
+      for (const lesson of unit.lessons) {
+        // Update total_questions for each lesson
+        const questionCount = await Question.countDocuments({ lesson_id: lesson._id });
+        lesson.total_questions = questionCount;
+  
+        // Calculate total_tries for each lesson
+        let totalTries = lesson.answer_status.reduce((accum, answer) => accum + answer.tries, 0);
+        lesson.total_tries = totalTries;
+      }
+    }
+  
+    next();
+  });
+  
+
+
+// // Middleware to update total_lessons and total_questions before saving
+// ProgressSchema.pre('save', async function (next) {
+//     const units = this.subjects.reduce(
+//       (accum, subject) =>
+//         accum.concat(subject.classes.flatMap((cls) => cls.units)),
+//       []
+//     );
+  
+//     for (const unit of units) {
+//       // Update total_lessons for each unit
+//       const lessonCount = await Lesson.countDocuments({ unit_id: unit._id });
+//       unit.total_lessons = lessonCount;
+  
+//       for (const lesson of unit.lessons) {
+//         // Update total_questions for each lesson
+//         const questionCount = await Question.countDocuments({ lesson_id: lesson._id });
+//         lesson.total_questions = questionCount;
+//       }
+//     }
+  
+//     next();
+//   });
+  
+
+// // Middleware to update total_lessons before saving
+// ProgressSchema.pre('save', async function (next) {
+//     const units = this.subjects.reduce(
+//       (accum, subject) => accum.concat(subject.classes.flatMap((cls) => cls.units)),
+//       []
+//     );
+  
+//     // Update total_lessons for each unit
+//     for (const unit of units) {
+//       const lessonCount = await Lesson.countDocuments({ unit_id: unit._id });
+//       unit.total_lessons = lessonCount;
+//     }
+  
+//     next();
+//   });
+
+
+//FOR RESETING THE COUNTER, this works 100%
+// const Progress = mongoose.model('Progress', ProgressSchema);
+
+// // Reset the counter for _id field in Progress model
+// Progress.counterReset('_id', function(err) {
+//   if (err) {
+//     console.error(err);
+//     return;
+//   }
+
+//   console.log('Counter reset successfully for _id field in Progress model.');
+// });
 module.exports = mongoose.model('Progress',ProgressSchema);

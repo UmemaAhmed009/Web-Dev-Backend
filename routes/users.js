@@ -25,7 +25,8 @@ router.post('/signup', async(req, res, next)=>{
             name:result.name,
             email:result.email,
             password:result.password,
-            role_id: 2
+            role_id: 2,
+            age:result.age
             
         })
         const savedUser=await user.save()
@@ -103,7 +104,8 @@ router.post('/refresh-token', async (req, res, next) => {
 //checks for authentication based on the token passed in the header
 //then checks for authorization, if role_id=1 i.e. admin, API hit is allowed
 //GET ALL USERS
-router.get('/', verifyAccessToken, Authorization(1), (req, res, next) => {
+// router.get('/', verifyAccessToken, Authorization(1), (req, res, next) => {
+router.get('/', (req, res, next) => {
     User.find()
     .exec()
     .then(docs =>{
@@ -137,6 +139,7 @@ router.put('/:id', async(req,res) =>{
         user.email = req.body.email,
         user.password = await bcrypt.hash(req.body.password,10),
         user.role_id=req.body.role_id
+        user.age=req.body.age
         const u1 = await user.save()
         res.json(u1)
     }
@@ -151,7 +154,8 @@ router.post('/', async(req,res) => {
         name:req.body.name,
         email: req.body.email,
         password: req.body.password,
-        role_id: req.body.role_id
+        role_id: req.body.role_id,
+        age: req.body.age
     })
     try{
         const u1 = await user.save()
