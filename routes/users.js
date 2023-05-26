@@ -138,6 +138,7 @@ router.put('/:id', async(req,res) =>{
         user.name= req.body.name,
         user.email = req.body.email,
         user.password = await bcrypt.hash(req.body.password,10),
+        user.age=req.body.age,
         user.role_id=req.body.role_id
         user.age=req.body.age
         const u1 = await user.save()

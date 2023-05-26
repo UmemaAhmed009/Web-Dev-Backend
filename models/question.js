@@ -22,6 +22,10 @@ const question_schema = new mongoose.Schema({
         type: Array,
         required: true,
         ref: 'Subject'
+    },
+    question_image: {
+        type: String,
+        required: true
     }
 })
 module.exports = mongoose.model("Question", question_schema);
