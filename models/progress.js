@@ -119,6 +119,7 @@ const ProgressSchema = mongoose.Schema({
 ProgressSchema.plugin(AutoIncrement);
 // ProgressSchema.plugin(AutoIncrement, {inc_field: 'id'});
 
+
 // Middleware to update total_lessons, total_questions, and total_tries before saving
 ProgressSchema.pre('save', async function (next) {
     const units = this.subjects.reduce(
@@ -140,11 +141,77 @@ ProgressSchema.pre('save', async function (next) {
         // Calculate total_tries for each lesson
         let totalTries = lesson.answer_status.reduce((accum, answer) => accum + answer.tries, 0);
         lesson.total_tries = totalTries;
+  
+        // Calculate lesson_progress as a percentage of correct answers to total_questions
+        const correctAnswers = lesson.answer_status.reduce((accum, answer) => accum + (answer.is_correct ? 1 : 0), 0);
+        lesson.correct_answers = correctAnswers;
+        lesson.lesson_progress = (correctAnswers / lesson.total_questions) * 100;
+  
+        if (lesson.lesson_progress === 100) {
+          lesson.is_completed = true;
+          lesson.lesson_completed_at = Date.now();
+        }
+      }
+  
+      // Calculate unit_progress as a percentage of completed_lessons to total_lessons
+      unit.completed_lessons = unit.lessons.reduce((accum, lesson) => accum + (lesson.is_completed ? 1 : 0), 0);
+      unit.unit_progress = (unit.completed_lessons / unit.total_lessons) * 100;
+  
+      if (unit.unit_progress === 100) {
+        unit.is_completed = true;
+        unit.unit_completed_at = Date.now();
       }
     }
   
     next();
   });
+  
+
+// // Middleware to update total_lessons, total_questions, and total_tries before saving
+// ProgressSchema.pre('save', async function (next) {
+//     const units = this.subjects.reduce(
+//       (accum, subject) =>
+//         accum.concat(subject.classes.flatMap((cls) => cls.units)),
+//       []
+//     );
+  
+//     for (const unit of units) {
+//       // Update total_lessons for each unit
+//       const lessonCount = await Lesson.countDocuments({ unit_id: unit._id });
+//       unit.total_lessons = lessonCount;
+      
+
+//       // Calculate unit_progress as a percentage of completed_lessons to total_lessons
+//       unit.completed_lessons= unit.lessons.reduce((accum, lesson) => accum + (lesson.is_completed ? 1 : 0), 0);
+//       unit.unit_progress = ( unit.completed_lessons/ unit.total_lessons) * 100;
+//       if (unit.unit_progress==100){
+//           unit.is_completed=true;
+//           unit.unit_completed_at=Date.now();
+//       }
+  
+//       for (const lesson of unit.lessons) {
+//         // Update total_questions for each lesson
+//         const questionCount = await Question.countDocuments({ lesson_id: lesson._id });
+//         lesson.total_questions = questionCount;
+  
+//         // Calculate total_tries for each lesson
+//         let totalTries = lesson.answer_status.reduce((accum, answer) => accum + answer.tries, 0);
+//         lesson.total_tries = totalTries;
+
+
+//         // Calculate lesson_progress as a percentage of correct answers to total_questions
+//         const correctAnswers = lesson.answer_status.reduce((accum, answer) => accum + (answer.is_correct ? 1 : 0), 0);
+//         lesson.correct_answers=correctAnswers;
+//         lesson.lesson_progress = (correctAnswers / lesson.total_questions) * 100;
+//         if (lesson.lesson_progress==100){
+//             lesson.is_completed=true;
+//             lesson.lesson_completed_at=Date.now();
+//         }
+//       }
+//     }
+  
+//     next();
+//   });
   
 
 

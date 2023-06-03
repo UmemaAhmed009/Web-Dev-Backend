@@ -18,7 +18,7 @@ router.get('/',async(req,res) =>{
 })
 
 //GET SUBJECT BY ID API
-router.get('/:id',verifyAccessToken,async(req,res) =>{
+router.get('/:id',/*verifyAccessToken,*/async(req,res) =>{
     try{
         const subject =  await Subject.findById(req.params.id)
         res.json(subject)

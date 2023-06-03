@@ -2,13 +2,16 @@ const mongoose = require('mongoose');
 //const Student = require("../models/student");
 //const Progress = require("../models/progress");
 
+
+const AutoIncrement = require('mongoose-sequence')(mongoose);
+
 const leaderboard_schema = new mongoose.Schema({
     _id:
     {
         type: Number,
         required: true
     },
-    student_id:
+    user_id:
     {
         type: mongoose.Schema.Types.Number,
         required: true,
@@ -31,10 +34,15 @@ const leaderboard_schema = new mongoose.Schema({
         type: mongoose.Schema.Types.Number,
         required: true,
     },
+    total_tries:{
+        type: Number
+
+    },
     rank:
     {
         type: Number,
         required: true
     }
 })
+
 module.exports = mongoose.model("Leaderboard", leaderboard_schema);
