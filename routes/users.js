@@ -44,7 +44,7 @@ router.post('/login', async (req, res, next) => {
     try {
         const result = await authSchema.validateAsync(req.body)
         const user = await User.findOne({ email: result.email })
-
+        console.log("RESULT", result)
         if (!user) throw createError.NotFound('User not registered')
 
         const isMatch = await user.isValidPassword(result.password)
@@ -91,9 +91,9 @@ router.post('/refresh-token', async (req, res, next) => {
         const userId = await verifyRefreshToken(refreshToken)
 
         const accessToken = await AccessToken(userId)
-        // const refToken = await RefreshToken(userId)
-        // res.send({ accessToken: accessToken, refreshToken: refToken })
-        res.send({ accessToken: accessToken})
+        const refToken = await RefreshToken(userId)
+        res.send({ accessToken: accessToken, refreshToken: refToken })
+        // res.send({ accessToken: accessToken})
 
     } catch (error) {
         next(error)
@@ -121,7 +121,7 @@ router.get('/', (req, res, next) => {
 });
 
 //GET BY ID API
-router.get('/:id', verifyAccessToken, async(req,res) =>{
+router.get('/:id'/*, verifyAccessToken*/, async(req,res) =>{
     try{
         const users =  await User.findById(req.params.id)
         res.json(users)
@@ -132,22 +132,23 @@ router.get('/:id', verifyAccessToken, async(req,res) =>{
 })
 
 //PUT API
-router.put('/:id', async(req,res) =>{
-    try{
-        const user = await User.findById(req.params.id)
-        user.name= req.body.name,
-        user.email = req.body.email,
-        user.password = await bcrypt.hash(req.body.password,10),
-        user.age=req.body.age,
-        user.role_id=req.body.role_id
-        user.age=req.body.age
-        const u1 = await user.save()
-        res.json(u1)
+router.put('/:id', async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+  
+      Object.assign(user, req.body);
+  
+      if (req.body.password) {
+        user.password = await bcrypt.hash(req.body.password, 10);
+      }
+  
+      const updatedUser = await user.save();
+      res.json(updatedUser);
+    } catch (err) {
+      res.send('Error on put');
     }
-    catch(err){
-        res.send('Error on put')
-    }
-})
+  });
+  
 
 //POST API
 router.post('/', async(req,res) => {

@@ -8,7 +8,7 @@ module.exports={
             const payload = {userId}
             const secret = process.env.JWT_KEY
             const options = {
-                expiresIn :'1h',
+                expiresIn :'1m',
                 issuer: 'edTech.com',
                 audience: userId,
             }

@@ -39,6 +39,17 @@ router.get('/lessonName/:lesson_name',async(req,res) =>{
     }
 })
 
+//GET LESSON NAME BY ID API
+router.get('/:id/lesson_name',/*verifyAccessToken,*/async(req,res) =>{
+    try{
+        const lesson =  await Lesson.findById(req.params.id)
+        res.json(lesson.lesson_name)
+    }
+    catch(err){
+        res.send("Error found getting subject by ID " + err)
+    }
+})
+
 // GET units by subject ID and class ID
 // router.get('/subject/:subjectID/class/:classID', /*verifyAccessToken,*/ async(req, res) => {
 //     try {

@@ -40,6 +40,17 @@ router.get('/unitName/:unit_name',async(req,res) =>{
     }
 })
 
+//GET UNIT NAME BY ID API
+router.get('/:id/unit_name', async(req,res) =>{
+    try{
+        const unit =  await Unit.findById(req.params.id)
+        res.json(unit.unit_name)
+    }
+    catch(err){
+        res.send("Error found getting subject by ID " + err)
+    }
+})
+
 //Addition by minal-temporary
 // GET units by subject ID and class ID
 router.get('/subject/:subjectID/class/:classID', /*verifyAccessToken,*/ async(req, res) => {

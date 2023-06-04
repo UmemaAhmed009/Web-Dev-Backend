@@ -28,10 +28,22 @@ router.get('/:id',/*verifyAccessToken,*/async(req,res) =>{
     }
 })
 
+//GET SUBJECT ID BY NAME
 router.get('/subjectName/:subject_name',async(req,res) =>{
     try{
         const subject =  await Subject.findOne({subject_name: req.params.subject_name})
         res.json(subject._id)
+    }
+    catch(err){
+        res.send("Error found getting subject by ID " + err)
+    }
+})
+
+//GET SUBJECT NAME BY ID API
+router.get('/:id/subject_name',/*verifyAccessToken,*/async(req,res) =>{
+    try{
+        const subject =  await Subject.findById(req.params.id)
+        res.json(subject.subject_name)
     }
     catch(err){
         res.send("Error found getting subject by ID " + err)
