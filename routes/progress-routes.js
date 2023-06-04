@@ -44,8 +44,8 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
-//GET Completed lessons
-router.get('/user/:userId/completed-lessons', async (req, res) => {
+//GET Completed lessons for a unit
+router.get('/user/:userId/unit/:unitId/completed-lessons', async (req, res) => {
   try {
     const progress = await Progress.findOne({ user_id: req.params.userId });
 
@@ -53,16 +53,19 @@ router.get('/user/:userId/completed-lessons', async (req, res) => {
       return res.status(404).json({ error: 'Progress not found' });
     }
 
+    const unitId = req.params.unitId;
     const completedLessons = [];
 
     progress.subjects.forEach((subject) => {
       subject.classes.forEach((cls) => {
         cls.units.forEach((unit) => {
-          unit.lessons.forEach((lesson) => {
-            if (lesson.is_completed) {
-              completedLessons.push(lesson._id);
-            }
-          });
+          if (unit._id == unitId) {
+            unit.lessons.forEach((lesson) => {
+              if (lesson.is_completed) {
+                completedLessons.push(lesson._id);
+              }
+            });
+          }
         });
       });
     });
@@ -104,8 +107,8 @@ router.get('/user/:userId/lesson/:lessonId/completed', async (req, res) => {
   }
 });
 
-//GET Completed units
-router.get('/user/:userId/completed-units', async (req, res) => {
+//GET Completed units for a class
+router.get('/user/:userId/class/:classId/completed-units', async (req, res) => {
   try {
     const progress = await Progress.findOne({ user_id: req.params.userId });
 
@@ -113,15 +116,18 @@ router.get('/user/:userId/completed-units', async (req, res) => {
       return res.status(404).json({ error: 'Progress not found' });
     }
 
+    const classId= req.params.classId;
     const completedUnits = [];
 
     progress.subjects.forEach((subject) => {
       subject.classes.forEach((cls) => {
-        cls.units.forEach((unit) => {
-            if (unit.is_completed) {
-              completedUnits.push(unit._id);
-            }
-        });
+        if (cls._id == classId) {
+          cls.units.forEach((unit) => {
+              if (unit.is_completed) {
+                completedUnits.push(unit._id);
+              }
+          });
+        }
       });
     });
 
@@ -130,7 +136,6 @@ router.get('/user/:userId/completed-units', async (req, res) => {
     res.status(500).send("Error occurred while getting completed units by user ID: " + err);
   }
 });
-
 
 // //POST API, would create progress_id+user_id+subject empty array only
 // router.post('/', (req, res, next) => {

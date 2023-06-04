@@ -63,6 +63,8 @@ router.get('/unit/:unit_id', /*verifyAccessToken,*/ async(req, res) => {
 router.put('/:id',/*verifyAccessToken*/ async(req,res) =>{
     try {
         const lesson = await Lesson.findById(req.params.id)
+        console.log(lesson);
+        console.log(req.body.lesson_image);
         lesson.lesson_name = req.body.lesson_name,
         lesson.unit_id = req.body.unit_id,
         lesson.lesson_details= req.body.lesson_details,
