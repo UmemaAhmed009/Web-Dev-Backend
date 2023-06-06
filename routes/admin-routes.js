@@ -21,7 +21,6 @@ const User = require("../models/user");
 //             throw createError.Conflict(`${result.email} is already been registered`)
         
 //         const user= new User({
-//             _id: new mongoose.Types.ObjectId(),
 //             name:result.name,
 //             email:result.email,
 //             password:result.password,

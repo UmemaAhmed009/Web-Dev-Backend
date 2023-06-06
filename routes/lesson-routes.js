@@ -10,7 +10,8 @@ router.get('/',async(req,res) =>{
     try{
         //console.log(req.headers['authorization'])
         const lessons =  await Lesson.find()
-        res.json(lessons)
+        const count = lessons.length;
+        res.status(200).json({lessons, count});
     }
     catch(err){
         res.send('Error ' + err)
@@ -60,9 +61,12 @@ router.get('/unit/:unit_id', /*verifyAccessToken,*/ async(req, res) => {
   });
 
 //PUT API
-router.put('/:id',/*verifyAccessToken*/ async(req,res) =>{
+router.put('/:id',async(req,res) =>{
     try {
         const lesson = await Lesson.findById(req.params.id)
+        if (!lesson) {
+            return res.status(404).json({ message: 'Lesson not found' });
+          }
         lesson.lesson_name = req.body.lesson_name,
         lesson.unit_id = req.body.unit_id,
         lesson.lesson_details= req.body.lesson_details,
@@ -71,7 +75,8 @@ router.put('/:id',/*verifyAccessToken*/ async(req,res) =>{
         res.json(l1)
     }
     catch(err){
-        res.send('Error on put')
+        console.error(err);
+        res.status(500).send('Error on put');
     }
 })
 //POST API

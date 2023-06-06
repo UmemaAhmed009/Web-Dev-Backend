@@ -104,13 +104,14 @@ router.post('/refresh-token', async (req, res, next) => {
 //checks for authentication based on the token passed in the header
 //then checks for authorization, if role_id=1 i.e. admin, API hit is allowed
 //GET ALL USERS
-// router.get('/', verifyAccessToken, Authorization(1), (req, res, next) => {
+//router.get('/', verifyAccessToken, Authorization(1), (req, res, next) => {
 router.get('/', (req, res, next) => {
     User.find()
     .exec()
     .then(docs =>{
         console.log(docs);
-        res.status(200).json(docs);
+        const count = docs.length;
+        res.status(200).json({docs, count});
     })
     .catch(err =>{
         console.log(err);
@@ -132,12 +133,12 @@ router.get('/:id', verifyAccessToken, async(req,res) =>{
 })
 
 //PUT API
-router.put('/:id', async(req,res) =>{
+router.put('/:id', verifyAccessToken, async(req,res) =>{
     try{
         const user = await User.findById(req.params.id)
         user.name= req.body.name,
         user.email = req.body.email,
-        user.password = await bcrypt.hash(req.body.password,10),
+        // user.password = await bcrypt.hash(req.body.password,10),
         user.age=req.body.age,
         user.role_id=req.body.role_id
         user.age=req.body.age

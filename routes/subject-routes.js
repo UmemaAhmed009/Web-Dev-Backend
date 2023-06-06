@@ -10,7 +10,8 @@ router.get('/',async(req,res) =>{
     try{
         //console.log(req.headers['authorization'])
         const subjects =  await Subject.find()
-        res.json(subjects)
+        const count = subjects.length;
+        res.status(200).json({subjects, count});
     }
     catch(err){
         res.send('Error ' + err)
