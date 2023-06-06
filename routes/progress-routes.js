@@ -34,6 +34,108 @@ router.get('/:id',async(req,res) =>{
     }
 })
 
+// GET PROGRESS BY USER ID API
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const progress = await Progress.findOne({ user_id: req.params.userId });
+    res.json(progress);
+  } catch (err) {
+    res.status(500).send("Error found  hetting progress by user ID: " + err);
+  }
+});
+
+//GET Completed lessons for a unit
+router.get('/user/:userId/unit/:unitId/completed-lessons', async (req, res) => {
+  try {
+    const progress = await Progress.findOne({ user_id: req.params.userId });
+
+    if (!progress) {
+      return res.status(404).json({ error: 'Progress not found' });
+    }
+
+    const unitId = req.params.unitId;
+    const completedLessons = [];
+
+    progress.subjects.forEach((subject) => {
+      subject.classes.forEach((cls) => {
+        cls.units.forEach((unit) => {
+          if (unit._id == unitId) {
+            unit.lessons.forEach((lesson) => {
+              if (lesson.is_completed) {
+                completedLessons.push(lesson._id);
+              }
+            });
+          }
+        });
+      });
+    });
+
+    res.json(completedLessons);
+  } catch (err) {
+    res.status(500).send("Error occurred while getting completed lessons by user ID: " + err);
+  }
+});
+
+//Checks if lesson is completed
+router.get('/user/:userId/lesson/:lessonId/completed', async (req, res) => {
+  try {
+    const { lessonId, userId } = req.params;
+
+    // Find the progress document for the user
+    const progress = await Progress.findOne({ user_id: userId });
+
+    // Check if the lesson is completed in the progress data
+    let isLessonCompleted = false;
+    if (progress) {
+      progress.subjects.forEach((subject) => {
+        subject.classes.forEach((classObj) => {
+          classObj.units.forEach((unit) => {
+            unit.lessons.forEach((lesson) => {
+              if (lesson._id.toString() === lessonId && lesson.is_completed) {
+                isLessonCompleted = true;
+              }
+            });
+          });
+        });
+      });
+    }
+
+    res.json({ isLessonCompleted });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+//GET Completed units for a class
+router.get('/user/:userId/class/:classId/completed-units', async (req, res) => {
+  try {
+    const progress = await Progress.findOne({ user_id: req.params.userId });
+
+    if (!progress) {
+      return res.status(404).json({ error: 'Progress not found' });
+    }
+
+    const classId= req.params.classId;
+    const completedUnits = [];
+
+    progress.subjects.forEach((subject) => {
+      subject.classes.forEach((cls) => {
+        if (cls._id == classId) {
+          cls.units.forEach((unit) => {
+              if (unit.is_completed) {
+                completedUnits.push(unit._id);
+              }
+          });
+        }
+      });
+    });
+
+    res.json(completedUnits);
+  } catch (err) {
+    res.status(500).send("Error occurred while getting completed units by user ID: " + err);
+  }
+});
 
 // //POST API, would create progress_id+user_id+subject empty array only
 // router.post('/', (req, res, next) => {

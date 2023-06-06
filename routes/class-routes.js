@@ -39,6 +39,17 @@ router.get('/className/:class_name',async(req,res) =>{
     }
 })
 
+//GET SUBJECT NAME BY ID API
+router.get('/:id/class_name', async(req,res) =>{
+    try{
+        const classes =  await Class.findById(req.params.id)
+        res.json(classes.class_name)
+    }
+    catch(err){
+        res.send("Error found getting class by ID " + err)
+    }
+})
+
 //PUT API
 router.put('/:id',verifyAccessToken, async(req,res) =>{
     try{

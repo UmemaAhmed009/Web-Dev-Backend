@@ -40,6 +40,17 @@ router.get('/lessonName/:lesson_name',async(req,res) =>{
     }
 })
 
+//GET LESSON NAME BY ID API
+router.get('/:id/lesson_name',/*verifyAccessToken,*/async(req,res) =>{
+    try{
+        const lesson =  await Lesson.findById(req.params.id)
+        res.json(lesson.lesson_name)
+    }
+    catch(err){
+        res.send("Error found getting subject by ID " + err)
+    }
+})
+
 // GET units by subject ID and class ID
 // router.get('/subject/:subjectID/class/:classID', /*verifyAccessToken,*/ async(req, res) => {
 //     try {
@@ -61,24 +72,33 @@ router.get('/unit/:unit_id', /*verifyAccessToken,*/ async(req, res) => {
   });
 
 //PUT API
-router.put('/:id',async(req,res) =>{
+router.put('/:id', async (req, res) => {
     try {
-        const lesson = await Lesson.findById(req.params.id)
-        if (!lesson) {
-            return res.status(404).json({ message: 'Lesson not found' });
-          }
-        lesson.lesson_name = req.body.lesson_name,
-        lesson.unit_id = req.body.unit_id,
-        lesson.lesson_details= req.body.lesson_details,
-        lesson.lesson_image= req.body.lesson_image
-        const l1 = await lesson.save()
-        res.json(l1)
+      const lesson = await Lesson.findById(req.params.id);
+  
+      Object.assign(lesson, req.body);
+  
+      const updatedLesson = await lesson.save();
+      res.json(updatedLesson);
+    } catch (err) {
+      res.send('Error on put');
     }
-    catch(err){
-        console.error(err);
-        res.status(500).send('Error on put');
-    }
-})
+  });
+// router.put('/:id',async(req,res) =>{
+//     try {
+//         const lesson = await Lesson.findById(req.params.id)
+//         lesson.lesson_name = req.body.lesson_name,
+//         lesson.unit_id = req.body.unit_id,
+//         lesson.lesson_details= req.body.lesson_details,
+//         lesson.lesson_image= req.body.lesson_image
+//         const l1 = await lesson.save()
+//         res.json(l1)
+//     }
+//     catch(err){
+//         console.error(err);
+//         res.status(500).send('Error on put');
+//     }
+// })
 //POST API
 router.post('/', async(req,res) => {
     const lesson = new Lesson({
