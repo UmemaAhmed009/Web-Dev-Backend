@@ -95,7 +95,7 @@ const bodyParser= require('body-parser');
  app.use('/admin',adminRouter)
 
 
- app.listen(3001, () =>{
+ app.listen(3000, () =>{
     console.log('Server started on port! :)')
  })
 
